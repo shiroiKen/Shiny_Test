@@ -6,23 +6,25 @@
 
 server <- function(input, output, session) {
   
-  # This single line forces ggplot2/plotly/lattice to match the dark/light switch!
-  # thematic_shiny(session = session)
-  
-  
+
+# Reactive data Subsetting ------------------------------------------------
+
   # Reactive subsetting based on user input filtering
   filtered_data <- 
     reactive({
       iot_data[Type == input$type & Tool_Wear < input$wear_threshold]
       })  
 
+
   
-  
+
+# Render Summary Outputs ----------------------------------------------------------
+
   # Dynamic UI calculation metrics summary
   output$daily_summary_ui<-renderUI({
     df<-filtered_data()
     
-    req(df)
+    req(df)   # require the filtered data to be present
     
     avg_speed<- ifelse(nrow(df)>0,yes = round(mean(df$Rotational_Speed,0)),
                        no = 0)
@@ -51,14 +53,18 @@ server <- function(input, output, session) {
     
     })
   
-  
+
+
+# Render the data table --------------------------------------------------------
+
+    
   # Machinery Log Output table mapping rows
   
   output$event_log_table<- renderTable({
     
     df<-filtered_data()
     
-    req(df, nrow(df)>0)
+    req(df, nrow(df)>0) # also require the data frame not to be empty
     
     
     # Restructure data layout view to emphasize sensor matrices
@@ -77,11 +83,14 @@ server <- function(input, output, session) {
   
   
   
+
+# Render the download button action ---------------------------------------
+
   
-  #CSV Downloader targeting localized metrics 
+  #CSV Down-loader targeting localized metrics 
   
   output$download_csv<-downloadHandler(
-    # {req(filtered_data())}
+    
 
         filename = function(){
       paste("ai4i-filtered-subgrid-",Sys.Date(),".csv",sep = "")
@@ -91,117 +100,83 @@ server <- function(input, output, session) {
     }
   )
   
+
+  
+  
+# Render The Reset button ---------------------------------------------
+  
+  # End instance routine
+  observeEvent(input$refresh,
+               {
+updateSelectInput(inputId = "type", selected = "L")
+updateSliderInput(inputId ="wear_threshold", value =180)
+})
   
   
   
+    
+
+# Render The close App button ---------------------------------------------
+
   # End instance routine
   observeEvent(input$logout,
                {stopApp()})
   
   
-    
-  
+
+# Render Number of the filtered machines ----------------------------------
+
   # # KPI Calculations 
   output$total_machines <- renderText({ nrow(filtered_data()) })
-  # 
-  # # Sum up actual mechanical failures in the subset   
-  # output$failure_count <- renderText({
-  #   sum(filtered_data()$`Machine failure` == 1)
-  # })
-  # 
-  # output$avg_torque <- renderText({
-  #   paste(round(mean(filtered_data()$Torque), 2), " Nm")
-  # })
-  # 
 
-#  Main Time-Series Engine ------------------------------------------------
+  
 
+# Reactive colors for plots  ----------------------------------------------
+
+# This is to change plots colors when changing dark/light modes  
   
   # 2. CREATE A REACTIVE VARIABLE THAT RE-EXTRACTS COLORS ON TOGGLE
   live_colors <- reactive({
-    # This input dependency forces R to re-evaluate this block when clicked
-    
-      dark= input$dark_mode_toggle
-      req(dark)
+ 
+       # This input dependency forces R to re-evaluate this block when clicked
+          dark= input$dark_mode
+          req(dark)
 
-    # print(input$dark_mode_toggle)
-    # Re-extract the fresh compiled hex values from the live theme state
-    # bs_get_variables(#bs_current_theme(),
-    #   session$getCurrentTheme(),
-    #   c("custom-chart-bg", "custom-chart-font", "custom-grid-color")
-    # )
 list(
     chart_bg   = ifelse(dark=="dark","#202020","#ffffff"),
     chart_font = ifelse(dark=="dark","#ffffff","#202020"),
     grid_color = ifelse(dark=="dark","#404040","#e0e0e0")
 )
-    
-    
-  })
-  # 
+    })
+   
   
+
+  #  Main Time-Series Engine ------------------------------------------------
   
   output$sensor_plot <- renderPlotly({
     
     df<-filtered_data()
-    
-    # 1. Read the custom CSS variables live from the current theme state
-    # theme_info <- getCurrentOutputInfo()
-    # print(theme_info$bg())
-    # print(theme_info$fg())
-  
-      req(df)
-    
     cols<-live_colors()
-    req(cols)
-    # 
-    # print(cols)
-    # # Fallback to defaults if the application is still initializing
-    # bg_color <- theme_info$bg() %||% "#eeeeee"
-    # font_color <- theme_info$fg() %||% "#222222"
+    req(df,cols)  # require the filtered data and reactive colors.
+   
     
-    # print(bs_current_theme()$layers)
-    # 
-    # # 2. Extract the compiled theme values for the current user state
-    # # This automatically tracks light vs dark mode switches
-    # current_colors <- bs_get_variables(bs_current_theme(),
-    #                     c("custom-chart-bg", "custom-chart-font",
-    #                       "custom-grid-color","bg-custom-chart-bg",
-    #                       "theme-colors-bg"))
-
-    
-    # print(current_colors)
-    # # # 3. Pull the exact calculated strings
+    # Pull the calculated colors
     chart_bg   <- cols[["chart_bg"]]
     chart_font <- cols[["chart_font"]]
     grid_color <- cols[["grid_color"]]
-    # # 
-    # 
-    
-# chart_bg   <- ifelse(input$dark_mode_toggle=="dark","#202020","#ffffff")
-# chart_font <- ifelse(input$dark_mode_toggle=="dark","#ffffff","#202020")
-# grid_color <- ifelse(input$dark_mode_toggle=="dark","#404040","#e0e0e0")
-      
-        
-      
-    # th=bs_current_theme()
-    
-    # 2. Tell Plotly exactly which CSS variable to pull from your SCSS file
-    # This keeps your color definitions 100% inside your .scss file!
-    # chart_bg   <- "var(--custom-chart-bg)"
-    # chart_font <- "var(--custom-chart-font)"
-    # grid_color <- "var(--custom-grid-color)"
     
     
-    p <- plot_ly(df[1:500], x = ~`UDI`) %>%
+# Define the Plot    
+p <- plot_ly(df[1:500], x = ~`UDI`) %>%  # fixed data sample
       
-      add_lines(y = ~Torque, name = "Torque (Nm)",
-                line = list(color = '#00A0A0')) %>%
+add_lines(y = ~Torque, name = "Torque (Nm)",  # add 1st trend line
+               line = list(color = '#00A0A0')) %>%
       
-      add_lines(y = ~Rotational_Speed / 30, name = "Normalized Speed",
-                line = list(color = '#A00000')) %>%
+add_lines(y = ~Rotational_Speed / 30,  # add 2nd trend line
+               name = "Normalized Speed", 
+               line = list(color = '#A00000')) %>%
       
-      layout(
+      layout(          # Customise the chart visuals
         
         # Natively binding the browser's current CSS variables to the layout
         plot_bgcolor = chart_bg,
@@ -218,21 +193,9 @@ list(
         )
       )
         
-        
-        # xaxis = list(title = "Time Sequence (Ticks)", gridcolor = bg_color),
-        # yaxis = list(title = "Sensor Values", gridcolor = bg_color),
-        # plot_bgcolor = bg_color,
-        # paper_bgcolor = bg_color,
-        # font = list(color = font_color))
-        # 
-        # yaxis = list(title = "Sensor Values")#,
-        # plot_bgcolor = "#DDDDDD",
-        # paper_bgcolor = "#DDDDDD",
-        # font = list(color = "#000000")
-      # )
-    
-    p
-  })
+    p   # draw the  plot
+
+      })
   
 
 #  Secondary Distribution Graph -------------------------------------------
@@ -240,17 +203,19 @@ list(
   
   output$temp_hist <- renderPlotly({
     
+    df<-filtered_data()
     cols<-live_colors()
-    req(cols)
+    req(df,cols)  # require the filtered data and reactive colors.
+    
+    # Pull the calculated colors
     chart_bg   <- cols[["chart_bg"]]
     chart_font <- cols[["chart_font"]]
     grid_color <- cols[["grid_color"]]
     
     
     
-    plot_ly(filtered_data(), x = ~Air_Temp, type = "histogram",
+    plot_ly(df, x = ~Air_Temp, type = "histogram",
             alpha = 0.5,color = I('#007700'),size=I(0.1)
-            # marker = list(color = '#007700',size  = I(1))
             ) %>%
       
       layout(
@@ -261,12 +226,6 @@ list(
       )
   })
   
-# 
   
   }
 
-
-# Run The Application -----------------------------------------------------
-
-
-# shinyApp(ui, server)

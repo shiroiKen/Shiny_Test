@@ -1,97 +1,28 @@
-
-
-/* 1. Core Sass Variables (Must use $ syntax so R can parse them) 
-
-
-$custom-chart-bg: var(--custom-chart-bg); 
-$custom-chart-font: var(--custom-chart-font);
-$custom-grid-color: var(--custom-grid-color);
-*/
-
 	 
  /* --- LIGHT MODE DEFAULT --- */ 
 :root {
-  --bs-card-bg: #ffffff;
-  --bs-card-color: #212529;
-  --bs-border-color: #dee2e6;
-
-
+  --bs-card-bg: #2b3035;  //black   //Background color of the container 
+  --bs-card-color: #dee2e6;  //black //Text color inside the container.
+  --bs-border-color: #dee2e6;  //gray //Outer border tint
 	
-	
-/*  update Custom chart tokens 
-  --custom-chart-bg: #DDDDDD; 
-  --custom-chart-font: #000000;
-  --custom-grid-color: #CCCCCC; 
-*/
+
 }
-
-
-
-
-
-/* 2. Normal CSS Classes and Theme overrides can stay right here */
 
 
 /* --- DARK MODE OVERRIDES --- */
 [data-bs-theme="dark"] {
-  --bs-card-bg: #2b3035;
-  --bs-card-color: #f8f9fa;
-  --bs-border-color: #495057;
-  
-  /* Custom chart tokens 
-  --custom-chart-bg: #1e1e1e; 
-  --custom-chart-font: #ffffff;
-  --custom-grid-color: #383838;
-*/
+  --bs-card-bg: #ffffff;  //white
+  --bs-card-color: #f8f9fa; // silver white
+  --bs-border-color: #495057;  // light black
+
 }
-
-
-
-/* 3. Manually create the background helper classes to bypass Bootstrap's crash loops
-.bg-custom-chart-bg { background-color: var(--custom-chart-bg) !important; }
-.bg-custom-chart-font { background-color: var(--custom-chart-font) !important; }
-.bg-custom-grid-color { background-color: var(--custom-grid-color) !important; }
-*/
-	
-/*Create your own map
-$custom-colors: (
-
-"custom-chart-bg": var(--custom-chart-bg),
-"custom-chart-font": var(--custom-chart-font),
-"custom-grid-color:": var(--custom-grid-color)
-); */
-
-/* Merge the maps
-$theme-colors-bg: map-merge($theme-colors, (
-"custom-chart-bg": var(--custom-chart-bg),
-"custom-chart-font": var(--custom-chart-font),
-"custom-grid-color:": var(--custom-grid-color)
-)); 
-
-*/
-
-
-/* Your card class stays completely clean and dynamic 
-.custom-card {
-  background-color: var(--bs-card-bg);
-  color: var(--bs-card-color);
-  border: 1px solid var(--bs-border-color);
   
-  &:hover {
-    background-color: var(--bs-tertiary-bg);
-  }
-}*/
-
- 
- 
- 
- 
  
  
                /* 1. Define the Pulse/Glitter Keyframes */
                @keyframes hud-glitter {
                0% {
-               box-shadow: 0 0 4px #444444, inset 0 0 2px #444444;
+               box-shadow: 0 0 4px #444444, inset 0 0 2px #444444;  //dark gray
                text-shadow: 0 0 2px #444444;
                }
                50% {
@@ -105,19 +36,19 @@ $theme-colors-bg: map-merge($theme-colors, (
                }
                }
                
-               /* 2. Apply the effect to active Bootstrap Nav links (Tabs) */
-               .navbar-nav .nav-link.active, .nav-pills .nav-link.active {
-               background-color: #00A0A0  !important;
-               color: #000FAA  !important;
-               border: 1px solid #1a1a1a;
+               /* 2. Style of active Bootstrap Nav links (Tabs) */
+               .navbar-nav .nav-link.active, .nav-pills .nav-link.active, .nav-tabs .nav-link.active {
+               background-color: #008080 ;  // dark cyan
+               color: var(--bs-card-bg);//#000FAA  ;
+               //border: 1px solid #1a1a1a;
               /* animation: hud-glitter 2s infinite ease-in-out; */
                }
                
                /* 3. Apply a dynamic hover effect to buttons and cards */
                .btn-outline-cyan:hover, .card:hover {
 			   background-color: var(--bs-tertiary-bg);
-               border-color: #800000  !important;
-               //color: #1a1a1a  !important;
+               border-color: #800000  ;
+               color: var(--bs-card-color);
                /*animation: hud-glitter 1.5s infinite ease-in-out; */
                transition: all 0.3s ease;
                }
@@ -125,18 +56,17 @@ $theme-colors-bg: map-merge($theme-colors, (
                /* Give cards a crisp cyber border initially */
                .card {
                background-color: var(--bs-card-bg);
-               color: var(--bs-card-color);
+               //color: var(--bs-card-color);
                border: 1px solid var(--bs-border-color);
-
-               /*border: 1px solid #00A0A0;
-               background-color: #FFFFFF !important;*/
                }
 		
 		
 			   .btn-outline-cyan{
-                    color: var(--bs-card-color);
-                    border-color: #008080;
-                    background: transparent;
+                    color: var(--bs-card-color); //font color
+                    background: #008080;
+					//color: #008080;
+					border-color: var(--bs-border-color);
+                   // background: transparent;
                     }
                   
                     .table{
@@ -144,7 +74,9 @@ $theme-colors-bg: map-merge($theme-colors, (
                     }
         
 		       .btn-outline-danger{
-				    background: transparent;
+				   background: #800000;
+					//background: transparent;
+					border-color: var(--bs-border-color);
 					color: var(--bs-card-color);
 			   }
 			   
